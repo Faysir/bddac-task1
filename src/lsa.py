@@ -4,7 +4,7 @@ Created on Sat Jul 05 13:03:23 2014
 LSA: Latent Semantic Analysis 
 __init__:
         input: word_dict:the dict {word:the label of id}
-        id_count:the number of the id
+               id_count:the number of the id
 
 build_matrix: construct the matrix of the word and the id
               obtain a dict of the word and its label
