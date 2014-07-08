@@ -4,7 +4,7 @@ Created on Sat Jul 05 13:03:23 2014
 LSA: Latent Semantic Analysis 
 __init__:
         input: word_dict:the dict {word:the label of id}
-        id_count:the number of the id
+               id_count:the number of the id
 
 build_matrix: construct the matrix of the word and the id
               obtain a dict of the word and its label
@@ -26,9 +26,11 @@ class LSA(object):
     def __init__(self,word_dict,id_count):
         self.word_dict=word_dict
         self.id_count=id_count
+        self.word_lbl={}
+        self.A=[]
+        self.words=[]
         
     def build_matrix(self):
-        self.word_lbl={}
         self.words=[k for k in self.word_dict.keys()]
         self.A=np.zeros([len(self.words),self.id_count])
         for i,k in enumerate(self.words):
@@ -48,6 +50,7 @@ class LSA(object):
     def cal_lsa(self):
         self.build_matrix()
         self.TF_IDF()
-        self.U,self.S,self.Vt=np.linalg.svd(self.A)
+        U,S,Vt=np.linalg.svd(self.A)
+        return U,S,Vt
                 
     
