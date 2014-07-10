@@ -27,7 +27,7 @@ def get_text_in_line(line,stopwords):
                   #      tmp.append(seg)
                 tmp=[seg for seg in jieba.cut(item.encode("GB18030")) if seg+'\n' not in stopwords]
             text.append(tmp)
-        text=sum(text)
+        text=sum(text,[])
         return entity_id,text
             
 
@@ -52,7 +52,7 @@ def get_dict(doc_path,stop_word_path):
         cnt=cnt+1
         
     
-    all_word=sum(texts)
+    all_word=sum(texts,[])
     word_once=set(word for word in set(all_word) if all_word.count(word)==1)
     texts=[[word for word in text if word not in word_once] 
             for text in texts]
