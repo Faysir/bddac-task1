@@ -23,6 +23,7 @@ def get_stop_words(filepath):
     stopwords = []
     while line:
         stopwords.append(line.decode("GB18030"))
+        #stopwords.append(line.decode("UTF-8"))
         line = f.readline()
     return stopwords
     

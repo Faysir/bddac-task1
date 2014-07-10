@@ -1,56 +1,57 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jul 05 13:03:23 2014
-LSA: Latent Semantic Analysis 
-__init__:
-        input: word_dict:the dict {word:the label of id}
-               id_count:the number of the id
-
-build_matrix: construct the matrix of the word and the id
-              obtain a dict of the word and its label
-        self.A[word,id_label]=the times of the word occured in id
-        self.word_lbl={word:word_label}
-
-TF_IDF: convert the element in self.A to the TF_IDF value
-        self.A[word,id_label]=tf_idf_value_of_the _word
-
-cal_lsa: calculate the svd decomposition of the self.A
-        self.u,self.s,self.vt=svd(self.A)
-
-        
+Created on Thu Jul 10 09:48:26 2014
+Do the LSA using the gensim toolkit
+save the LSA information
 @author: mountain
 """
-import numpy as np
 
-class LSA(object):
-    def __init__(self,word_dict,id_count):
-        self.word_dict=word_dict
-        self.id_count=id_count
-        self.word_lbl={}
-        self.A=[]
-        self.words=[]
-        
-    def build_matrix(self):
-        self.words=[k for k in self.word_dict.keys()]
-        self.A=np.zeros([len(self.words),self.id_count])
-        for i,k in enumerate(self.words):
-            for d in self.word_dict[k]:
-                self.A[i,d]+=1
-                self.word_lbl[k]=i
-    
-    def TF_IDF(self):
-        words_per_doc=np.sum(self.A,axis=0)
-        doc_per_word=np.sum(self.A,axis=1)
-        row,col=self.A.shape
-        for i in range(row):
-            for j in range(col):
-                self.A[i,j]=self.A[i,j]/words_per_doc[j]*np.log(col)/doc_per_word[i]
+from gensim import corpora, models
+import json
 
+def LSA(texts):    
+    #texts: obtained by data_processing 
+    #texts=[[text1],[text2]...[textn] where text1=[word for word occured in text1]
+    dictionary=corpora.Dictionary(texts)    
+    corpus=[dictionary.doc2bow(text) for text in texts]    
+       
+    tfidf = models.TfidfModel(corpus)
+    corpus_tfidf = tfidf[corpus]
+    lsi = models.LsiModel(corpus_tfidf, id2word=dictionary)
     
-    def cal_lsa(self):
-        self.build_matrix()
-        self.TF_IDF()
-        U,S,Vt=np.linalg.svd(self.A)
-        return U,S,Vt
-                
+    corpus_lsi = lsi[corpus_tfidf]
     
+    return dictionary,corpus,tfidf,corpus_tfidf,lsi,corpus_lsi
+    
+if __name__=='__main__':
+    
+    #LSA
+    f=file(r'../result/doc_word.json')
+    texts=json.load(f,encoding = "GB18030", strict=False)
+    dictionary,corpus,tfidf,corpus_tfidf,lsi,corpus_lsi=LSA(texts)
+    
+    #save the dictionary according to the texts
+    fname='../result/dict.txt'
+    dictionary.save_as_text(fname)
+    
+    #save the corpus, corpus=[[(word,word_occured_times_in_text) for word occured in text] for text in texts]
+    doc_wordid_path='../result/doc_wordid.txt'
+    corpora.MmCorpus.serialize(doc_wordid_path, corpus)    
+    #aa=list(corpora.MmCorpus(doc_wordid_path))
+    
+    #save the tfidf_model which can be used later for mapping a corpus to a tf-idf_copus
+    tfidf_model='../result/tfidf_model.txt'
+    tfidf.save(tfidf_model)
+    
+    #save the corpus_tfidf, list(corpus_tfidf)=[[(word,tf_idf) for word occured in text] for text in texts]
+    doc_tfidf_path='../result/doc_tfidf.txt'
+    corpora.MmCorpus.serialize(doc_tfidf_path, corpus_tfidf)
+    #bb=list(corpora.MmCorpus(doc_tfidf_path))
+    
+    #save the lsi_model
+    lsi_model='../result/lsimodel.txt'
+    lsi.save(lsi_model)
+    #lsi = models.LsiModel.load('/tmp/model.lsi')
+    
+    #save the corpus_lsi,list(corpus_lsi)=[[ftr of the text after lsi] for text in texts]
+    corpora.MmCorpus.serialize('../result/doc_ftr_aft_lsi.txt', corpus_lsi)
